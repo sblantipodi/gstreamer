@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export GSTREAMER_ROOT="c:/projects/repos/cerbero.git/1.18/build/dist/mingw_x86_64"
+export GSTREAMER_ROOT="/builds/seungha.yang/gst-plugins-bad/cerbero-build/dist/mingw_x86_64"
 export PATH="${GSTREAMER_ROOT}/bin${PATH:+:$PATH}"
 export LD_LIBRARY_PATH="${GSTREAMER_ROOT}/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export PKG_CONFIG_PATH="${GSTREAMER_ROOT}/lib/pkgconfig:${GSTREAMER_ROOT}/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
@@ -10,7 +10,7 @@ export GST_REGISTRY_1_0="${HOME}/.cache/gstreamer-1.0/gstreamer-cerbero-registry
 export GST_PLUGIN_SCANNER_1_0="${GSTREAMER_ROOT}/libexec/gstreamer-1.0/gst-plugin-scanner"
 export GST_PLUGIN_PATH_1_0="${GSTREAMER_ROOT}/lib/gstreamer-1.0"
 export GST_PLUGIN_SYSTEM_PATH_1_0="${GSTREAMER_ROOT}/lib/gstreamer-1.0"
-export PYTHONPATH="${GSTREAMER_ROOT}/Lib/site-packages${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="${GSTREAMER_ROOT}/lib64/python3.7/site-packages${PYTHONPATH:+:$PYTHONPATH}"
 export CFLAGS="-I${GSTREAMER_ROOT}/include ${CFLAGS}"
 export CXXFLAGS="-I${GSTREAMER_ROOT}/include ${CXXFLAGS}"
 export CPPFLAGS="-I${GSTREAMER_ROOT}/include ${CPPFLAGS}"
