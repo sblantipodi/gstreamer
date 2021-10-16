@@ -174,9 +174,9 @@ def printc(message, color="", title=False, title_char='', end="\n"):
     global last_carriage_return_len
     if title or title_char:
         length = 0
-        for l in message.split("\n"):
-            if len(l) > length:
-                length = len(l)
+        for line in message.split("\n"):
+            if len(line) > length:
+                length = len(line)
         if length == 0:
             length = len(message)
 
@@ -319,9 +319,9 @@ def get_duration(media_file):
         # in that case.
         pass
 
-    for l in res.split('\n'):
-        if "Duration: " in l:
-            duration = parse_gsttimeargs(l.replace("Duration: ", ""))
+    for line in res.split('\n'):
+        if "Duration: " in line:
+            duration = parse_gsttimeargs(line.replace("Duration: ", ""))
             break
 
     return duration
@@ -342,17 +342,17 @@ def get_gst_build_valgrind_suppressions():
         return get_gst_build_valgrind_suppressions.data
 
     for suppression_path in ["gstreamer/tests/check/gstreamer.supp",
-            "gst-plugins-base/tests/check/gst-plugins-base.supp",
-            "gst-plugins-good/tests/check/gst-plugins-good.supp",
-            "gst-plugins-bad/tests/check/gst-plugins-bad.supp",
-            "gst-plugins-ugly/tests/check/gst-plugins-ugly.supp",
-            "gst-libav/tests/check/gst-libav.supp",
-            "gst-devtools/validate/data/gstvalidate.supp",
-            "libnice/tests/libnice.supp",
-            "libsoup/tests/libsoup.supp",
-            "glib/glib.supp",
-            "gst-python/testsuite/gstpython.supp",
-            "gst-python/testsuite/python.supp",
+                             "gst-plugins-base/tests/check/gst-plugins-base.supp",
+                             "gst-plugins-good/tests/check/gst-plugins-good.supp",
+                             "gst-plugins-bad/tests/check/gst-plugins-bad.supp",
+                             "gst-plugins-ugly/tests/check/gst-plugins-ugly.supp",
+                             "gst-libav/tests/check/gst-libav.supp",
+                             "gst-devtools/validate/data/gstvalidate.supp",
+                             "libnice/tests/libnice.supp",
+                             "libsoup/tests/libsoup.supp",
+                             "glib/glib.supp",
+                             "gst-python/testsuite/gstpython.supp",
+                             "gst-python/testsuite/python.supp",
                              ]:
         suppression = os.path.join(config.SRCDIR, "subprojects", suppression_path)
         if os.path.exists(suppression):
@@ -429,7 +429,7 @@ class BackTraceGenerator(Loggable):
             else:
                 newer_than = time.strftime("%a %Y-%m-%d %H:%M:%S %Z", time.localtime(test._starting_time))
                 coredumpctl = self.coredumpctl + ['info', os.path.basename(test.command[0]),
-                    '--since', newer_than]
+                                                  '--since', newer_than]
 
             try:
                 info = subprocess.check_output(coredumpctl, stderr=subprocess.STDOUT)
@@ -464,7 +464,7 @@ class BackTraceGenerator(Loggable):
                 try:
                     with tempfile.NamedTemporaryFile() as stderr:
                         coredump = subprocess.check_output(self.coredumpctl + ['dump', pid],
-                            stderr=stderr)
+                                                           stderr=stderr)
 
                     with tempfile.NamedTemporaryFile() as tf:
                         tf.write(coredump)
@@ -491,6 +491,14 @@ def check_bugs_resolution(bugs_definitions):
     gitlab_issues = defaultdict(list)
 
     regexes = {}
+    mr_id = os.environ.get('CI_MERGE_REQUEST_IID')
+    mr_closes_issues = []
+    if mr_id:
+        gitlab_url = f"{os.environ['CI_API_V4_URL']}/projects/{os.environ['CI_MERGE_REQUEST_PROJECT_ID']}/merge_requests/{mr_id}/closes_issues"
+        for issue in json.load(urllib.request.urlopen(gitlab_url)):
+            mr_closes_issues.append(issue)
+
+    res = True
     for regex, bugs in bugs_definitions:
         if isinstance(bugs, str):
             bugs = [bugs]
@@ -500,12 +508,19 @@ def check_bugs_resolution(bugs_definitions):
 
             if "gitlab" in url.netloc:
                 components = [c for c in url.path.split('/') if c]
-                if len(components) != 4:
+                if len(components) not in [4, 5]:
                     printc("\n  + %s \n   --> bug: %s\n   --> Status: Not a proper gitlab report" % (regex, bug),
-                        Colors.WARNING)
+                           Colors.WARNING)
                     continue
                 project_id = components[0] + '%2F' + components[1]
-                issue_id = components[3]
+                issue_id = int(components[-1])
+                for issue in mr_closes_issues:
+                    url = urllib.parse.urlparse(issue['web_url'])
+                    closing_issue_project = '%2F'.join([c for c in url.path.split('/') if c][0:2])
+                    if project_id == closing_issue_project and issue['iid'] == issue_id:
+                        res = False
+                        printc("\n  + %s \n   --> %s: '%s'\n   ==> Will be closed by current MR %s\n\n===> Remove blacklisting before merging." % (
+                            regex, issue['web_url'], issue['title'], issue['state']), Colors.FAIL)
 
                 gitlab_url = "https://%s/api/v4/projects/%s/issues/%s" % (url.hostname, project_id, issue_id)
                 if gitlab_url in ALL_GITLAB_ISSUES:
@@ -533,7 +548,6 @@ def check_bugs_resolution(bugs_definitions):
             ids.append(_id)
             bugz[url_parts] = ids
 
-    res = True
     for gitlab_url, regexe in gitlab_issues.items():
         try:
             issue = json.load(urllib.request.urlopen(gitlab_url))
@@ -589,7 +603,7 @@ def check_bugs_resolution(bugs_definitions):
                    regex, bugid, desc, status), Colors.OKGREEN)
 
     if not res:
-        printc("\n==> Some bugs marked as known issues have been closed!", Colors.FAIL)
+        printc("\n==> Some bugs marked as known issues have been (or will be) closed!", Colors.FAIL)
 
     return res
 
@@ -645,7 +659,8 @@ def format_config_template(extra_data, config_text, test_name):
                                         test_name.replace('.', os.sep))
         actual_results_dir = os.path.join(extra_vars['validate-flow-actual-results-dir'],
                                           test_name.replace('.', os.sep))
-        extra_vars['validateflow'] = "validateflow, expectations-dir=\"%s\", actual-results-dir=\"%s\"" % (expectations_dir, actual_results_dir)
+        extra_vars['validateflow'] = "validateflow, expectations-dir=\"%s\", actual-results-dir=\"%s\"" % (
+            expectations_dir, actual_results_dir)
 
     if 'ssim-results-dir' in extra_vars:
         ssim_results = extra_vars['ssim-results-dir']
@@ -667,6 +682,7 @@ def get_fakesink_for_media_type(media_type, needs_clock=False):
 
 class InvalidValueError(ValueError):
     """Received value is invalid"""
+
     def __init__(self, name, value, expect):
         ValueError.__init__(
             self, "Invalid value {!r} for {}. Expect {}.".format(
@@ -926,9 +942,9 @@ class GstStructure(Loggable):
         if type_is_unknown:
             self._check_unknown_typed_value(value)
             warning('GstStructure',
-                "The GstStructure type {} with the value ({}) is "
-                "unknown. The value will be stored and serialized as "
-                "given.".format(_type, value))
+                    "The GstStructure type {} with the value ({}) is "
+                    "unknown. The value will be stored and serialized as "
+                    "given.".format(_type, value))
             _type = self._make_type_unknown(_type)
         self.fields[key] = (_type, value)
 
@@ -954,9 +970,9 @@ class GstStructure(Loggable):
                 value = self.get_value(key)
                 return value
             warning('GstStructure',
-                "The structure {} contains a value under {}, but is "
-                "a {}, rather than the expected {} type".format(
-                    self.name, key, type_name, expect_type))
+                    "The structure {} contains a value under {}, but is "
+                    "a {}, rather than the expected {} type".format(
+                        self.name, key, type_name, expect_type))
         return default
 
     def values(self):
@@ -1123,9 +1139,9 @@ class GstStructure(Loggable):
                 # prevent printing on subsequent calls if we find a
                 # list within a list, etc.
                 warning('GstStructure',
-                    "GstStructure received a range/list/array of type "
-                    "{}, which can not be deserialized. Storing the "
-                    "value as {}.".format(_type, value))
+                        "GstStructure received a range/list/array of type "
+                        "{}, which can not be deserialized. Storing the "
+                        "value as {}.".format(_type, value))
         else:
             match = cls.FIELD_VALUE_REGEX.match(read)
             if match is None:
@@ -1144,10 +1160,10 @@ class GstStructure(Loggable):
                             "({!s})".format(err))
                 else:
                     warning('GstStructure',
-                        "GstStructure found a type {} that is unknown. "
-                        "The corresponding value ({}) will not be "
-                        "deserialized and will be stored as given."
-                        "".format(_type, value))
+                            "GstStructure found a type {} that is unknown. "
+                            "The corresponding value ({}) will not be "
+                            "deserialized and will be stored as given."
+                            "".format(_type, value))
         if type_is_unknown and _type is not None:
             _type = cls._make_type_unknown(_type)
         return _type, value, read
@@ -1279,13 +1295,13 @@ class GstStructure(Loggable):
 
     # see GST_ASCII_IS_STRING in gst_private.h
     GST_ASCII_CHARS = [
-        ord(l) for l in "abcdefghijklmnopqrstuvwxyz"
-                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                        "0123456789"
-                        "_-+/:."
+        ord(line) for line in "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789"
+        "_-+/:."
     ]
-    LEADING_OCTAL_CHARS = [ord(l) for l in "0123"]
-    OCTAL_CHARS = [ord(l) for l in "01234567"]
+    LEADING_OCTAL_CHARS = [ord(line) for line in "0123"]
+    OCTAL_CHARS = [ord(line) for line in "01234567"]
 
     @classmethod
     def serialize_string(cls, value):
@@ -1559,6 +1575,7 @@ class GstCapsFeatures():
     """
     Mimicking a GstCapsFeatures.
     """
+
     def __init__(self, *features):
         """
         Initialize the GstCapsFeatures.

@@ -26,14 +26,22 @@ import platform
 import shutil
 import subprocess
 import threading
+from pathlib import Path
 import concurrent.futures as conc
 
 
 from launcher import config
 from launcher.utils import printc, Colors, get_gst_build_valgrind_suppressions
 from launcher.main import setup_launcher_from_args
-from launcher.baseclasses import VALGRIND_TIMEOUT_FACTOR
+from launcher.baseclasses import VALGRIND_TIMEOUT_FACTOR, GstValidateTest
 from launcher.apps.gstvalidate import GstValidateSimpleTest
+
+
+VALIDATE_TOOLS = ['gst-validate-1.0', 'gst-validate-1.0.exe',
+                  'ges-launch-1.0', 'ges-launch-1.0.exe',
+                  'gst-validate-transcoding-1.0', 'gst-validate-transcoding-1.0.exe',
+                  'gst-validate-media-check-1.0', 'gst-validate-media-check-1.0.exe',
+                  ]
 
 
 class MesonTest(Test):
@@ -105,6 +113,40 @@ class GstCheckTest(MesonTest):
         env['GST_PLUGIN_PATH'] = os.pathsep.join(cpath)
         if 'GST_PLUGIN_PATH_1_0' in env:
             del env['GST_PLUGIN_PATH_1_0']
+
+        return env
+
+
+class GstValidateCheckTest(GstValidateTest):
+    def __init__(self, name, options, reporter, test_infos, child_env=None):
+        ref_env = os.environ.copy()
+        if child_env is None:
+            child_env = {}
+        else:
+            ref_env.update(child_env)
+
+        child_env.update(test_infos['env'])
+        self.child_env = child_env
+
+        timeout = int(test_infos['timeout'])
+        super().__init__(
+            test_infos['cmd'][0], name, options,
+            reporter, timeout=timeout, hard_timeout=timeout,
+            is_parallel=test_infos.get('is_parallel', True),
+            workdir=test_infos['workdir']
+        )
+
+        self.test_infos = test_infos
+
+    def build_arguments(self):
+        self.add_arguments(*self.test_infos['cmd'][1:])
+
+    def get_subproc_env(self):
+        env = super().get_subproc_env()
+        env.update(self.child_env)
+        for var, val in self.child_env.items():
+            if val != os.environ.get(var):
+                self.add_env_variable(var, val)
 
         return env
 
@@ -227,7 +269,9 @@ class MesonTestsManager(TestsManager):
         if binary != sys.argv[0]:
             return sublauncher_tests
 
+        os.environ["GST_DEBUG_FILE"] = str(Path(self.options.logsdir) / f"{test['name']}.discover.gstlog")
         res, _, tests_launcher = setup_launcher_from_args(cmd[1:], main_options=self.options)
+        del os.environ["GST_DEBUG_FILE"]
         if res is False:
             return sublauncher_tests
 
@@ -394,7 +438,15 @@ class GstCheckTestsManager(MesonTestsManager):
                                                     self.options,
                                                     self.reporter))
                 continue
-            if not gst_tests:
+            if os.path.basename(test['cmd'][0]) in VALIDATE_TOOLS:
+                child_env = self.get_child_env(name)
+                self.add_test(
+                    GstValidateCheckTest(
+                        name, self.options, self.reporter, test,
+                        child_env
+                    )
+                )
+            elif not gst_tests:
                 child_env = self.get_child_env(name)
                 self.add_test(GstCheckTest(name, self.options, self.reporter, test,
                                            child_env))

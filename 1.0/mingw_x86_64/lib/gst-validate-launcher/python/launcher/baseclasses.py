@@ -127,7 +127,7 @@ class Test(Loggable):
         self.is_parallel = is_parallel
         self.generator = None
         self.workdir = workdir
-        self.allow_flakiness = False
+        self.max_retries = 0
         self.html_log = None
         self.rr_logdir = None
 
@@ -708,7 +708,7 @@ class Test(Loggable):
             extra_logs.append(shutil.copy(logfile, path))
         self.extra_logfiles = extra_logs
 
-    def test_end(self, retry_on_failure=False):
+    def test_end(self, retry_on_failures=False):
         self.kill_subprocess()
         self.thread.join()
         self.time_taken = time.time() - self._starting_time
@@ -717,10 +717,7 @@ class Test(Loggable):
             signal.signal(signal.SIGINT, self.previous_sigint_handler)
 
         self.finalize_logfiles()
-        message = None
-        end = "\n"
-
-        if self.options.dump_on_failure:
+        if self.options.dump_on_failure and not retry_on_failures and not self.max_retries:
             if self.result not in [Result.PASSED, Result.KNOWN_ERROR, Result.NOT_RUN]:
                 self._dump_log_files()
 
@@ -807,7 +804,8 @@ class GstValidateListener(socketserver.BaseRequestHandler, Loggable):
                 # Make sure that action end is taken into account when checking if process
                 # is updating
                 test.position += 1
-                test.actions_infos[-1]['execution-duration'] = obj['execution-duration']
+                if test.actions_infos:
+                    test.actions_infos[-1]['execution-duration'] = obj['execution-duration']
             elif obj_type == 'report':
                 test.add_report(obj)
             elif obj_type == 'skip-test':
@@ -825,7 +823,7 @@ class GstValidateTest(Test):
                  options, reporter, duration=0,
                  timeout=DEFAULT_TIMEOUT, scenario=None, hard_timeout=None,
                  media_descriptor=None, extra_env_variables=None,
-                 expected_issues=None, workdir=None):
+                 expected_issues=None, workdir=None, **kwargs):
 
         extra_env_variables = extra_env_variables or {}
 
@@ -863,14 +861,16 @@ class GstValidateTest(Test):
 
             extra_env_variables["GST_VALIDATE_OVERRIDE"] = override_path
 
-        super(GstValidateTest, self).__init__(application_name, classname,
-                                              options, reporter,
-                                              duration=duration,
-                                              timeout=timeout,
-                                              hard_timeout=hard_timeout,
-                                              extra_env_variables=extra_env_variables,
-                                              expected_issues=expected_issues,
-                                              workdir=workdir)
+        super().__init__(application_name,
+                         classname,
+                         options, reporter,
+                         duration=duration,
+                         timeout=timeout,
+                         hard_timeout=hard_timeout,
+                         extra_env_variables=extra_env_variables,
+                         expected_issues=expected_issues,
+                         workdir=workdir,
+                         **kwargs)
         if media_descriptor and media_descriptor.get_media_filepath():
             config_file = os.path.join(media_descriptor.get_media_filepath() + '.config')
             if os.path.isfile(config_file):
@@ -1464,9 +1464,10 @@ class TestsManager(Loggable):
                 tests_regexes.append(regex)
                 for test in self.tests:
                     if regex.findall(test.classname):
-                        if failure_def.get('allow_flakiness'):
-                            test.allow_flakiness = True
-                            self.debug("%s allow flakiness" % (test.classname))
+                        max_retries = failure_def.get('allow_flakiness', failure_def.get('max_retries'))
+                        if max_retries:
+                            test.max_retries = int(max_retries)
+                            self.debug(f"{test.classname} allow {test.max_retries}")
                         else:
                             for issue in failure_def['issues']:
                                 issue['bug'] = bugid
@@ -1485,9 +1486,10 @@ class TestsManager(Loggable):
             failure_def['bug'] = bugid
             for regex in failure_def['tests']:
                 if regex.findall(test.classname):
-                    if failure_def.get('allow_flakiness'):
-                        test.allow_flakiness = True
-                        self.debug("%s allow flakiness" % (test.classname))
+                    max_retries = failure_def.get('allow_flakiness', failure_def.get('max_retries'))
+                    if max_retries:
+                        test.max_retries = int(max_retries)
+                        self.debug(f"{test.classname} allow {test.max_retries} retries.")
                     else:
                         for issue in failure_def['issues']:
                             issue['bug'] = bugid
@@ -2065,21 +2067,21 @@ class _TestsLauncher(Loggable):
 
         return True
 
-    def print_result(self, current_test_num, test, retry_on_failure=False):
-        if test.result != Result.PASSED and not retry_on_failure:
+    def print_result(self, current_test_num, test, total_num_tests, retry_on_failures=False):
+        if test.result != Result.PASSED and (not retry_on_failures or test.max_retries):
             printc(str(test), color=utils.get_color_for_result(test.result))
 
         length = 80
-        progress = int(length * current_test_num // self.total_num_tests)
+        progress = int(length * current_test_num // total_num_tests)
         bar = '█' * progress + '-' * (length - progress)
         if is_tty():
-            printc('\r|%s| [%s/%s]' % (bar, current_test_num, self.total_num_tests), end='\r')
+            printc('\r|%s| [%s/%s]' % (bar, current_test_num, total_num_tests), end='\r')
         else:
             if progress > self.current_progress:
                 self.current_progress = progress
-                printc('|%s| [%s/%s]' % (bar, current_test_num, self.total_num_tests))
+                printc('|%s| [%s/%s]' % (bar, current_test_num, total_num_tests))
 
-    def _run_tests(self, running_tests=None, all_alone=False, retry_on_failures=False):
+    def _run_tests(self, running_tests=None, all_alone=False, retry_on_failures=False, total_num_tests=None):
         if not self.all_tests:
             self.all_tests = self.list_tests()
 
@@ -2113,7 +2115,9 @@ class _TestsLauncher(Loggable):
             self.tests += copied
 
         self.total_num_tests = len(self.all_tests)
-        printc("\nRunning %d tests..." % self.total_num_tests, color=Colors.HEADER)
+        prefix = "=> Re-r" if total_num_tests else "R"
+        total_num_tests = total_num_tests if total_num_tests else self.total_num_tests
+        printc(f"\n{prefix}unning {total_num_tests} tests...", color=Colors.HEADER)
         # if order of test execution doesn't matter, shuffle
         # the order to optimize cpu usage
         if self.options.shuffle:
@@ -2133,36 +2137,47 @@ class _TestsLauncher(Loggable):
                 test = self.tests_wait()
                 jobs_running -= 1
                 current_test_num += 1
-                res = test.test_end(retry_on_failure=retry_on_failures)
+                res = test.test_end(retry_on_failures=retry_on_failures)
                 to_report = True
                 if res not in [Result.PASSED, Result.SKIPPED, Result.KNOWN_ERROR]:
                     if self.options.forever or self.options.fatal_error:
-                        self.print_result(current_test_num - 1, test, retry_on_failure=retry_on_failures)
+                        self.print_result(current_test_num - 1, test, retry_on_failures=retry_on_failures,
+                            total_num_tests=total_num_tests)
                         self.reporter.after_test(test)
                         return False
 
-                    if retry_on_failures:
-                        if not self.options.redirect_logs and test.allow_flakiness:
+                    if retry_on_failures or test.max_retries:
+                        if not self.options.redirect_logs:
                             test.copy_logfiles()
-                        printc(test)
                         to_retry.append(test)
 
                         # Not adding to final report if flakiness is tolerated
-                        to_report = not test.allow_flakiness
-                self.print_result(current_test_num - 1, test, retry_on_failure=retry_on_failures)
+                        if test.max_retries:
+                            test.max_retries -= 1
+                            to_report = False
+                self.print_result(current_test_num - 1, test,
+                    retry_on_failures=retry_on_failures,
+                    total_num_tests=total_num_tests)
                 if to_report:
                     self.reporter.after_test(test)
-                if retry_on_failures:
-                    test.clean()
                 if self.start_new_job(tests_left):
                     jobs_running += 1
 
         if to_retry:
             printc("--> Rerunning the following tests to see if they are flaky:", Colors.WARNING)
             for test in to_retry:
-                printc('  * %s' % test.classname)
+                test.clean()
+                printc(f'  * {test.classname}')
             printc('')
-            return self._run_tests(to_retry, all_alone=True, retry_on_failures=False)
+            self.current_progress = -1
+            res = self._run_tests(
+                to_retry,
+                all_alone=True,
+                retry_on_failures=False,
+                total_num_tests=len(to_retry),
+            )
+
+            return res
 
         return True
 
@@ -2179,6 +2194,7 @@ class _TestsLauncher(Loggable):
             if self.options.forever:
                 r = 1
                 while True:
+                    self.current_progress = -1
                     printc("-> Iteration %d" % r, end='\r')
 
                     if not self._run_tests():
@@ -2192,8 +2208,9 @@ class _TestsLauncher(Loggable):
             elif self.options.n_runs:
                 res = True
                 for r in range(self.options.n_runs):
+                    self.current_progress = -1
                     printc("-> Iteration %d" % r, end='\r')
-                    if not self._run_tests():
+                    if not self._run_tests(retry_on_failures=self.options.retry_on_failures):
                         res = False
                         printc("ERROR", Colors.FAIL, end="\r")
                     else:

@@ -65,17 +65,17 @@ LONG_VALGRIND_TESTS = [
     (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsink_async$', '20s'),
     (r'check.gst-plugins-good.elements_videomixer.test_play_twice$', '22s'),
     (r'check.gst-editing-services.nle_simple.test_one_after_other$', '40s'),
-    (r'check.gst-editing-services.nle_nleoperation.test_pyramid_operations_expandable', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.nle_nleoperation.test_complex_operations', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.nle_nleoperation.test_pyramid_operations', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.nle_nleoperation.test_pyramid_operations2', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.nle_complex.test_one_above_another', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.nle_nleoperation.test_simple_operation', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.seek_with_stop.check_clock_sync', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.edit_while_seeked_with_stop', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.seek_with_stop', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.nle_tempochange.test_tempochange_seek', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
-    (r'check.gst-editing-services.nle_tempochange.test_tempochange_play', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/67'),
+    (r'check.gst-editing-services.nle_nleoperation.test_pyramid_operations_expandable', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.nle_nleoperation.test_complex_operations', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.nle_nleoperation.test_pyramid_operations', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.nle_nleoperation.test_pyramid_operations2', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.nle_complex.test_one_above_another', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.nle_nleoperation.test_simple_operation', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.seek_with_stop.check_clock_sync', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.edit_while_seeked_with_stop', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.seek_with_stop', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.nle_tempochange.test_tempochange_seek', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
+    (r'check.gst-editing-services.nle_tempochange.test_tempochange_play', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/780'),
 ]
 
 VALGRIND_BLACKLIST = [
@@ -110,8 +110,11 @@ VALGRIND_BLACKLIST = [
     (r'check.gst-libav.generic_libavcodec_locking', '?'),
     (r'check.gst-libav.elements_avdemux_ape', '?'),
     (r'check.gst-editing-services.pythontests', 'Need to figure out how to introduce python suppressions'),
-    (r'check.gst-editing-services.check_keyframes_in_compositor_two_sources', 'Valgrind exit with an exitcode 20 but shows no issue: https://gitlab.freedesktop.org/thiblahute/gst-editing-services/-/jobs/4079972')
+    (r'check.gst-editing-services.check_keyframes_in_compositor_two_sources', 'Valgrind exit with an exitcode 20 but shows no issue: https://gitlab.freedesktop.org/thiblahute/gst-editing-services/-/jobs/4079972'),
+    (r'check.gst-plugins-good.elements_splitmuxsrc.test_splitmuxsrc_sparse_streams', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/739'),
+    (r'check.gst-plugins-good.elements_udpsrc.test_udpsrc_empty_packet', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/740')
 ]
+
 
 BLACKLIST = [
     (r'check.gstreamer.gst_gstsystemclock.test_stress_cleanup_unschedule', 'flaky under high server load'),
@@ -119,45 +122,106 @@ BLACKLIST = [
     (r'check.gstreamer.pipelines_seek.test_loopback_2$', '?'),
     (r'check.gstreamer.gst_gstelement.test_foreach_pad$', '?'),
     (r'check.gstreamer.libs_baseparse.parser_pull_short_read$', '?'),
-    (r'check.gst-plugins-base.elements_multisocketsink.test_sending_buffers_with_9_gstmemories$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/525'),
-    (r'check.gst-plugins-base.elements_multisocketsink.test_client_next_keyframe$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/issues/516'),
+    (r'check.gst-plugins-base.elements_multisocketsink.test_sending_buffers_with_9_gstmemories$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/779'),
+    (r'check.gst-plugins-base.elements_multisocketsink.test_client_next_keyframe$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/779'),
     (r'check.gst-plugins-base.elements_multisocketsink.test_add_client$', ''),
     (r'check.gst-plugins-base.libs_gstglcolorconvert.test_reorder_buffer$', '?'),
-    (r'check.gst-plugins-base.elements_audiotestsrc.test_layout$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/issues/535'),
-    (r'check.gst-plugins-good.elements_souphttpsrc.test_icy_stream$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/307'),
-    (r'check.gst-plugins-good.elements_rtpbin.test_sender_eos$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/527'),
-    (r'check.gst-plugins-good.elements_rtpbin.test_cleanup_recv$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/546'),
-    (r'check.gst-plugins-good.elements_flvmux.test_incrementing_timestamps$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/530'),
-    (r'check.gst-plugins-good.elements_flvmux.test_video_caps_late$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/543'),
+    (r'check.gst-plugins-base.elements_audiotestsrc.test_layout$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/781'),
+    (r'check.gst-plugins-good.elements_souphttpsrc.test_icy_stream$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/782'),
+    (r'check.gst-plugins-good.elements_rtpbin.test_sender_eos$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/783'),
+    (r'check.gst-plugins-good.elements_rtpbin.test_cleanup_recv$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/784'),
+    (r'check.gst-plugins-good.elements_flvmux.test_incrementing_timestamps$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/785'),
+    (r'check.gst-plugins-good.elements_flvmux.test_video_caps_late$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/786'),
     (r'check.gst-plugins-base.elements_appsrc.test_appsrc_blocked_on_caps$', '?'),
-    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsink$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/626'),
-    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsrc_sparse_streams$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/544'),
-    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsrc_caps_change$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/547'),
-    (r'check.gst-plugins-bad.elements_dtls.test_data_transfer$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/811'),
-    (r'check.gst-plugins-bad.elements_dtls.test_create_and_unref$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/811'),
-    (r'check.gst-plugins-bad.elements_camerabin.test_image_video_cycle$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/864'),
-    (r'check.gst-plugins-bad.elements_camerabin.test_single_video_recording$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/864#note_101558'),
-    (r'check.gst-plugins-bad.elements_camerabin.test_multiple_video_recordings$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/864#note_101646'),
-    (r'check.gst-plugins-bad.elements_curlhttpsrc.test_multiple_http_requests$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/932'),
-    (r'check.gst-plugins-good.elements_rtpsession.test_multiple_senders_roundrobin_rbs$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/548'),
-    (r'check.gst-plugins-bad.elements_shm.test_shm_live$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/847'),
-    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsink_async$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/531'),
-    (r'check.gst-plugins-bad.elements_netsim.netsim_stress$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/849'),
-    (r'check.gst-editing-services.nle_complex.test_one_expandable_another$', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/55'),
-    (r'check.gst-editing-services.nle_simple.test_simplest$', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/57'),
-    (r'check.gst-editing-services.ges_basic.test_ges_pipeline_change_state$', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/58'),
-    (r'check.gst-editing-services.pythontests.pyunittest.python.test_timeline.TestTransitions.test_transition_type$', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/62'),
-    (r'check.gst-editing-services.pythontests.pyunittest.python.test_timeline.TestTransitions.test_auto_transition$', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/63'),
-    (r'check.gst-plugins-base.pipelines_tcp.test_that_tcpserversink_and_tcpclientsrc_are_symmetrical$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/issues/221'),
+    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsink$', '[FIXME -- SHOULD BE FIXED] https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/626'),
+    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsrc_sparse_streams$', '[FIXME -- SHOULD BE FIXED] https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/739'),
+    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsrc_caps_change$', '[FIXME -- SHOULD BE FIXED] https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/547'),
+    (r'check.gst-plugins-bad.elements_dtls.test_data_transfer$', '[FIXME -- SHOULD BE FIXED] https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/811'),
+    (r'check.gst-plugins-bad.elements_dtls.test_create_and_unref$', '[FIXME -- SHOULD BE FIXED] https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/811'),
+    (r'check.gst-plugins-bad.elements_camerabin.test_image_video_cycle$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/787'),
+    (r'check.gst-plugins-bad.elements_camerabin.test_single_video_recording$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/787#note_1101544'),
+    (r'check.gst-plugins-bad.elements_camerabin.test_multiple_video_recordings$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/787#note_1101546'),
+    (r'check.gst-plugins-bad.elements_curlhttpsrc.test_multiple_http_requests$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/788'),
+    (r'check.gst-plugins-good.elements_rtpsession.test_multiple_senders_roundrobin_rbs$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/789'),
+    (r'check.gst-plugins-bad.elements_shm.test_shm_live$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/790'),
+    (r'check.gst-plugins-good.elements_splitmux.test_splitmuxsink_async$', '[FIXME -- SHOULD BE FIXED] https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/791'),
+    (r'check.gst-plugins-bad.elements_netsim.netsim_stress$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/792'),
+    (r'check.gst-editing-services.nle_complex.test_one_expandable_another$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/793'),
+    (r'check.gst-editing-services.nle_simple.test_simplest$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/794'),
+    (r'check.gst-editing-services.ges_basic.test_ges_pipeline_change_state$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/795'),
+    (r'check.gst-editing-services.pythontests.pyunittest.python.test_timeline.TestTransitions.test_transition_type$', '[FIXME -- SHOULD BE FIXED] https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/62'),
+    (r'check.gst-editing-services.pythontests.pyunittest.python.test_timeline.TestTransitions.test_auto_transition$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/796'),
+    (r'check.gst-plugins-base.pipelines_tcp.test_that_tcpserversink_and_tcpclientsrc_are_symmetrical$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/797'),
     (r'check.gstreamer.elements_capsfilter.test_unfixed_downstream_caps$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/issues/335'),
-    (r'check.gst-rtsp-server.gst_rtspclientsink.test_record$', 'https://gitlab.freedesktop.org/gstreamer/gst-rtsp-server/issues/55'),
-    (r'check.gst-rtsp-server.gst_rtspserver.test_shared_udp$', 'https://gitlab.freedesktop.org/gstreamer/gst-rtsp-server/issues/61'),
-    (r'check.gst-plugins-base.elements_audiomixer.test_flush_start_flush_stop$', 'https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/issues/555'),
-    (r'check.gstreamer-sharp.SdpTests$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer-sharp/issues/17'),
+    (r'check.gst-rtsp-server.gst_rtspclientsink.test_record$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/798'),
+    (r'check.gst-rtsp-server.gst_rtspserver.test_shared_udp$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/799'),
+    (r'check.gst-plugins-base.elements_audiomixer.test_flush_start_flush_stop$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/800'),
+    (r'check.gstreamer-sharp.SdpTests$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/801'),
     (r'check.gst-devtools.validate.launcher_tests.test_validate.launch_pipeline.not_negotiated.caps_query_failure.play_15s$', '?'),
-    (r'check.gst-editing-services.nle_simple.test_one_bin_after_other$', 'https://gitlab.freedesktop.org/gstreamer/gst-editing-services/issues/66'),
+    (r'check.gst-editing-services.nle_simple.test_one_bin_after_other$', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/802'),
     (r'check.gstreamer-vaapi.*$', 'only run the tests explicitly'),
+    (r'check.gst-rtsp-server.gst_rtspserver.test_multiple_transports', 'https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/767'),
 ]
+
+KNOWN_ISSUES = {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/773": {
+        "tests": [
+            r"check.gst-plugins-bad.elements_webrtcbin.*",
+        ],
+        "max_retries": 1,
+    },
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/775": {
+        "tests": [
+            r"check.gst-editing-services.check_edit_in_frames_with_framerate_mismatch",
+        ],
+        "max_retries": 1,
+    },
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/776": {
+        "tests": [
+            r"check.gst-plugins-base.validate.giosrc.read-growing-file",
+        ],
+        "max_retries": 1,
+    },
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/778": {
+        "tests": [
+            r"check.gstreamer.gst_gstbin.test_watch_for_state_change",
+        ],
+        "max_retries": 1,
+    },
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/803": {
+        "tests": [
+            "check.gst-editing-services.edit_while_seeked_with_stop"
+        ],
+        "issues": [
+            {
+                'returncode': None,
+                'sometimes': True,
+            },
+            {
+                'timeout': True,
+                'sometimes': True,
+            },
+        ],
+    },
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/804": {
+        "tests": [
+            "check.gst-editing-services.check_layer_activness_gaps"
+        ],
+        "issues": [
+            {
+                'returncode': 18,
+                'sometimes': True,
+            },
+            {
+                "issue-id": "scenario::execution-error",
+                "summary": "The execution of an action did not properly happen",
+                "level": "critical",
+                "detected-on": "check_layer_activness_gaps.scenario",
+                # "details": "\n> check_layer_activness_gaps.scenario:22\n    22 | check-property, target-element-factory-name=videotestsrc, property-name=pattern, property-value="Blue"\n       >\n       > <src>::pattern expected value: '(gchararray)Blue' different than observed: '(gchararray)"100\%\ Black"'",
+            },
+        ],
+    },
+}
 
 
 def setup_tests(test_manager, options):
@@ -168,6 +232,8 @@ def setup_tests(test_manager, options):
         test_manager.set_default_blacklist(VALGRIND_BLACKLIST)
         if options.long_limit <= utils.LONG_TEST:
             test_manager.set_default_blacklist(LONG_VALGRIND_TESTS)
+
+    test_manager.add_expected_issues(KNOWN_ISSUES)
 
     test_manager.register_tests()
     return True
