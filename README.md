@@ -1,4 +1,4 @@
-# GStreamer (v.1.27.50)
+# GStreamer (v.1.27.90)
 
 Windows binaries of GStreamer.   
 This is not my own work but I love the work of those guys.  
